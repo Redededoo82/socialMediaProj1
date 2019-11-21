@@ -5,16 +5,17 @@ admin.initializeApp();
 const express = require('express');
 const app = express();
 const app2 = express();
+require('dotenv').config();
 
 const config = {
-    apiKey: "AIzaSyDpre3LYFSaOES36poY1ikFNfGb1trJ8OI",
-    authDomain: "socialmediaproj1-d378f.firebaseapp.com",
-    databaseURL: "https://socialmediaproj1-d378f.firebaseio.com",
-    projectId: "socialmediaproj1-d378f",
-    storageBucket: "socialmediaproj1-d378f.appspot.com",
-    messagingSenderId: "658622002806",
-    appId: "1:658622002806:web:838514868dc0cdd5321157",
-    measurementId: "G-SKRLZ99Y9E"
+    apiKey: process.env.API_KEY,
+    authDomain: process.env.AUTH_DOMAIN,
+    databaseURL:process.env. DB_URL,
+    projectId: process.env.PROJ_ID,
+    storageBucket: process.env.BUCKET,
+    messagingSenderId: process.env.MESSAGING_SENDER_ID,
+    appId: process.env.APP_ID,
+    measurementId: process.env.MEAS_ID
 };
 
 const firebase = require('firebase');
@@ -22,9 +23,9 @@ firebase.initializeApp(config);
 
 const db = admin.firestore();
 
-//
+        //
 /////Get requests///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
+        //
 
 
 app
@@ -82,9 +83,9 @@ app2
     })
 
 
-//
+        //
 /////Post requests///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
+        //
 
 
 app
@@ -139,9 +140,9 @@ app2
     });
 
 
-//
+        //
 /////signUp route/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
+        //
 
 app.post('/signup', (req, res) => {
     const newUser = {
@@ -177,7 +178,7 @@ app.post('/signup', (req, res) => {
             }
         })
 })
-
+//59:00//
 
 exports.api = functions.https.onRequest(app)
 exports.api2 = functions.https.onRequest(app2)
