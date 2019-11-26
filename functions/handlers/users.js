@@ -2,9 +2,9 @@ const { admin, db } = require('../util/admin');
 const config = require('../util/config')
 const firebase = require('firebase')
 firebase.initializeApp(config)
-const { validateSignupData, validateLoginData } = require('../util/validators')
+const { validateSignupData, validateLoginData, reduceUserDetails } = require('../util/validators')
 
-
+//sign up user
 exports.signup = (req, res) => {
     const newUser = {
         email: req.body.email,
@@ -47,6 +47,7 @@ exports.signup = (req, res) => {
         })
         .then(() => {
             return res.status(201).json({ token });
+            // console.log(token)
         })
         .catch(err => {
             console.error(err)
@@ -57,6 +58,7 @@ exports.signup = (req, res) => {
             }
         })
 }
+//log user in
 
 exports.login = (req, res) => {
     const user = {
@@ -70,7 +72,7 @@ exports.login = (req, res) => {
 
     if (!valid) return res.status(400).json(errors)
 
-    
+
 
     firebase.auth().signInWithEmailAndPassword(user.email, user.password)
         .then(data => {
@@ -82,12 +84,49 @@ exports.login = (req, res) => {
         .catch(err => {
             console.error(err);
             if (err.code === "auth/wrong-password") {
-                return res.status(403).json({ general: 'Wrong password' })
+                return res.status(403).json({ general: 'Wrong password' });
             } else return res.status(500).json({ error: err.code });
 
-        })
-}
+        });
+};
+//add user details///
+exports.addUserDetails = (req, res) => {
+    let userDetails = reduceUserDetails(req.body);
 
+    db.doc(`/users/${req.user.handle}`).update(userDetails)
+        .then(() => {
+            res.json({ message: 'Details added successully' })           ////////////////////////////////////////////O.O/////////////////
+
+        })
+        .catch(err => {
+            console.error(err);
+            return res.status(500).json({ error: err.code })
+        })
+};
+////get own user details
+exports.getAuthenticatedUser = (req, res) => {
+    let userData = {};
+    db.doc(`/users/${req.user.handle}`).get()
+        .then((doc) => {
+            if (doc.exists) {
+                userData.credentials = doc.data()
+                return db.collection('likes').where('userHandle', '==', req.user.handle).get();
+            }
+        })
+        .then((data) =>{
+            userData.likes=[];
+            data.forEach(doc => {
+                userData.likes.push(doc.data())
+            })
+            return res.json(userData)
+        })
+        .catch(err => {
+            console.error(err)
+            return res.status(500).json({ error: err.code})
+        })
+};
+
+//upload a profile image ////
 exports.uploadImage = (req, res) => {
     const BusBoy = require('busboy');
     const path = require('path');
@@ -105,7 +144,7 @@ exports.uploadImage = (req, res) => {
         imageToBeUploaded = { filepath, mimetype };
         file.pipe(fs.createWriteStream(filepath));
     })
-    busboy.on('finish', () =>{
+    busboy.on('finish', () => {
         admin.storage().bucket().upload(imageToBeUploaded.filepath, {
             resumable: false,
             metadata: {
@@ -114,17 +153,19 @@ exports.uploadImage = (req, res) => {
                 }
             }
         })
-        .then(()=>{
-            const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/${imageFileName}?alt=media`
-            return db.doc(`/users/${req.user.handle}`).update({imageUrl});
-        })
-        .then(()=>{
-            return res.json({message: 'image uploaded successfully'})
-        })
-        .catch(err =>{
-            console.error(err);
-            return res.status(500).json({error: err.code});
-        })
+            .then(() => {
+                const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/${imageFileName}?alt=media`
+                return db.doc(`/users/${req.user.handle}`).update({ imageUrl });
+            })
+            .then(() => {
+                return res.json({ message: 'image uploaded successfully' })
+            })
+            .catch(err => {
+                console.error(err);
+                return res.status(500).json({ error: err.code });
+            })
     })
     busboy.end(req.rawBody);
 }
+
+

@@ -8,8 +8,8 @@ require('dotenv').config();
 
 const FBAuth = require('./util/fbAuth');
 
-const { getAllGrunts, postOneGrunt } = require('./handlers/grunts');
-const { signup, login, uploadImage } = require('./handlers/users');
+const { getAllGrunts, postOneGrunt , getGrunt} = require('./handlers/grunts');
+const { signup, login, uploadImage, addUserDetails,getAuthenticatedUser } = require('./handlers/users');
 
 
 
@@ -17,12 +17,21 @@ const { signup, login, uploadImage } = require('./handlers/users');
 
 app.get('/grunts', getAllGrunts);
 app.post('/grunt', FBAuth, postOneGrunt);
+app.get('/grunt/:gruntId', getGrunt)
+
+
+//TODO deleteGrunt
+//TODO likeGrunt
+//TODO unlikeGrunt
+//TODO commentOnGrunt
 
 
 ///user routes///
 
 app.post('/signup', signup);
 app.post('/login', login);
-app.post('/user/image', FBAuth, uploadImage)
+app.post('/user/image', FBAuth, uploadImage);
+app.post('/user', FBAuth, addUserDetails);
+app.get('/user', FBAuth, getAuthenticatedUser)
 
 exports.api = functions.https.onRequest(app);

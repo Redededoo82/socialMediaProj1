@@ -8,7 +8,7 @@ exports.getAllGrunts = (req, res) => {
             let grunts = []
             data.forEach((doc) => {
                 grunts.push({
-                    gruntID: doc.id,
+                    gruntId: doc.id,
                     body: doc.data().body,
                     userHandle: doc.data().userHandle,
                     createdAt: doc.data().createdAt
@@ -49,6 +49,30 @@ exports.postOneGrunt = (req, res) => {
             console.error(err)
         })
 }
+exports.getGrunt = (req, res)=>{
+    let gruntData = {};
+    db.doc(`/grunts/${req.params.gruntId}`).get()
+    .then((doc) => {
+        if(!doc.exists){
+            return res.status(404).json({error: "Grunt not found"})
+        }
+        gruntData = doc.data()
+        gruntData.gruntId = doc.id
+        return db.collection('comments').orderBy('createdAt', 'desc').where('gruntId', '==', req.params.gruntId).get()
+        
+    })
+    .then((data) =>{
+        gruntData.comments =[];
+        data.forEach((doc) => {
+            gruntData.comments.push(doc.data())
+        })
+        return res.json(gruntData)
+
+    })
+    .catch((err) =>{
+        res.status(500.).json({error: err.code})
+    });
+};
 
 
 
